@@ -15,6 +15,7 @@ jobs:
     outputs:
       release-created: ${{ steps.release.outputs['release_created'] }}
       tag-name: ${{ steps.release.outputs['tag_name'] }}
+      version: ${{ steps.release.outputs['version'] }}
 
     steps:
       - name: Run release-please
@@ -70,7 +71,6 @@ jobs:
         with:
           context: .
           push: true
-          target: ${{ matrix.package }}
           tags: |
             fluencelabs/cli-connector:latest
             fluencelabs/cli-connector:${{ needs.release-please.outputs.version }}
