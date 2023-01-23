@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/fluencelabs/cli-connector/compare/cli-connector-v0.1.1...cli-connector-v0.1.2) (2023-01-23)
+
+
+### Bug Fixes
+
+* Use caddy instead of react webserver ([#5](https://github.com/fluencelabs/cli-connector/issues/5)) ([447f98a](https://github.com/fluencelabs/cli-connector/commit/447f98a38bd337e51c050840b408c3c792074f2d))
+
 ## [0.1.1](https://github.com/fluencelabs/cli-connector/compare/cli-connector-v0.1.0...cli-connector-v0.1.1) (2023-01-23)
 
 
