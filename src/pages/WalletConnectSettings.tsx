@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
-import { VStack, Input } from "@chakra-ui/react";
+import { VStack, Input, Text, Center } from "@chakra-ui/react";
 import { Button } from "@chakra-ui/react";
-import WalletConnect from "@walletconnect/client";
-import { Web3Wallet } from "../utils/Web3Wallet";
 import { WCProvider } from "../utils/WCProvider";
+import { Spinner } from "@chakra-ui/react";
+
+const wcProvider = new WCProvider();
 
 export const WalletConnectSettings = () => {
   const [wcString, setWCString] = useState<string>("");
   const [isConnected, setConnected] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    wcProvider.init().then((x) => setLoading(false));
+  });
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -15,36 +21,60 @@ export const WalletConnectSettings = () => {
     if (urlParams.has("wc")) {
       if (
         urlParams.get("wc")!.length === 0 ||
-        urlParams.get("bridge")!.length === 0 ||
-        urlParams.get("key")!.length === 0
+        urlParams.get("relay-protocol")!.length === 0 ||
+        urlParams.get("symKey")!.length === 0
       ) {
         return;
       }
 
       const connectionString = `wc:${urlParams.get(
         "wc"
-      )}?bridge=${urlParams.get("bridge")}&key=${urlParams.get("key")}`;
+      )}?relay-protocol=${urlParams.get(
+        "relay-protocol"
+      )}&symKey=${urlParams.get("symKey")}`;
       setWCString(connectionString);
     }
   }, []);
 
-  const connect = async (connectionString: string) => {
+  const connect = (connectionString: string) => {
     console.log("Connecting to WalletConnect");
 
-    await WCProvider.getWCProvider(connectionString);
-    setConnected(true);
+    setLoading(true);
+    wcProvider
+      .connect(connectionString)
+      .then(() => {
+        setConnected(true);
+      })
+      .finally(() => setLoading(false));
   };
 
-  const disconnect = async () => {
-    const wc = await WCProvider.getWCProvider();
-    await wc.connector.killSession();
-    setConnected(false);
+  const disconnect = () => {
+    setLoading(true);
+    wcProvider
+      .disconnect()
+      .then(() => {
+        setConnected(false);
+      })
+      .finally(() => setLoading(false));
   };
+
+  if (isLoading)
+    return (
+      <VStack>
+        <Spinner
+          thickness="4px"
+          emptyColor="gray.200"
+          color="blue.500"
+          size="xl"
+        />
+      </VStack>
+    );
 
   return (
     <VStack spacing={8}>
       {isConnected === false ? (
         <>
+          <Text>Write connection string below</Text>
           <Input
             width={"30%"}
             placeholder="WalletConnect connection string"
@@ -56,9 +86,12 @@ export const WalletConnectSettings = () => {
           </Button>
         </>
       ) : (
-        <Button colorScheme="blue" onClick={() => disconnect()}>
-          Disconnect
-        </Button>
+        <>
+          <Text>Wait transaction in your wallet</Text>
+          <Button colorScheme="blue" onClick={() => disconnect()}>
+            Disconnect
+          </Button>
+        </>
       )}
     </VStack>
   );

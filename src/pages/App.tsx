@@ -4,7 +4,7 @@ import { ColorModeSwitcher } from "../ColorModeSwitcher";
 import { Button } from "@chakra-ui/react";
 import { Buffer } from "buffer";
 import { WalletConnectSettings } from "./WalletConnectSettings";
-import { Web3Wallet } from "../utils/Web3Wallet";
+import { Wallet } from "../utils/Wallet";
 
 // @ts-ignore
 window.Buffer = Buffer;
@@ -14,7 +14,7 @@ export const App = () => {
     React.useState<Boolean>(false);
 
   const connectToWallet = async () => {
-    Web3Wallet.getWallet()
+    Wallet.getWallet()
       .provider.send("eth_requestAccounts", [])
       .then((accounts: any) => {
         console.log(accounts);
