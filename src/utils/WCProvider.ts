@@ -1,92 +1,101 @@
-import WalletConnect from "@walletconnect/client";
-import { Web3Wallet } from "./Web3Wallet";
+import { Wallet } from "./Wallet";
+import { Core } from "@walletconnect/core";
+import WalletConnect from "@walletconnect/web3wallet";
+import { Web3Wallet } from "@walletconnect/web3wallet/dist/types/client";
+import { getSdkError } from "@walletconnect/utils";
 
 export class WCProvider {
-  private static wcProvider: WCProvider | null = null;
+  public connector: Web3Wallet | null = null;
 
-  public connector: WalletConnect;
+  async init() {
+    const core = new Core({
+      projectId: "70c1c5ed2a23e7383313de1044ddce7e",
+    });
 
-  static async getWCProvider(
-    wcString: string | null = null
-  ): Promise<WCProvider> {
-    if (this.wcProvider !== null) {
-      if (wcString === null) {
-        return this.wcProvider;
-      } else {
-        this.wcProvider.connector.killSession();
-      }
-    } else if (wcString === null) {
-      throw new Error("wcString is null");
-    }
-
-    const connector = new WalletConnect({
-      uri: wcString,
-      clientMeta: {
-        description: "Fluence ClI Connector",
-        url: "http://localhost",
-        icons: ["https://walletconnect.org/walletconnect-logo.png"],
+    const web3wallet = await WalletConnect.init({
+      core,
+      metadata: {
         name: "Fluence CLI Connector",
+        description: "",
+        url: "https://cli-connector.fluence.dev",
+        icons: [],
       },
     });
 
-    connector.on("session_request", async (error, payload) => {
-      console.log(payload);
-      if (error) {
-        throw error;
-      }
-
-      const walletChainId = (await Web3Wallet.getWallet().provider.getNetwork())
+    web3wallet.on("session_proposal", async (proposal) => {
+      console.log("session_proposal", proposal);
+      const walletChainId = (await Wallet.getWallet().provider.getNetwork())
         .chainId;
-
-      if (walletChainId !== payload.params[0].chainId) {
+      const chainId = `eip155:${walletChainId}`;
+      if (
+        !proposal.params.requiredNamespaces[`eip155`].chains?.includes(chainId)
+      ) {
         alert(
           "ChainId mismatch. Please change your wallet to the correct network."
         );
         return;
       }
 
-      connector.approveSession({
-        accounts: [
-          await Web3Wallet.getWallet().provider.getSigner().getAddress(),
-        ],
-        chainId: payload.params[0].chainId, // required
+      await web3wallet.approveSession({
+        id: proposal.id,
+        namespaces: {
+          eip155: {
+            accounts: (
+              await Wallet.getWallet().provider.listAccounts()
+            ).map((x) => `eip155:${walletChainId}:${x}`),
+            chains: [chainId],
+            methods: [
+              "eth_sendTransaction",
+              "eth_signTransaction",
+              "eth_sign",
+              "personal_sign",
+              "eth_signTypedData",
+            ],
+            events: ["chainChanged", "accountsChanged"],
+          },
+        },
       });
     });
 
-    connector.on("call_request", async (error, payload) => {
-      console.log(payload);
-
-      if (error) {
-        throw error;
-      }
-
-      const result = await Web3Wallet.getWallet().provider.send(
-        payload.method,
-        payload.params
+    web3wallet.on("session_request", async (request) => {
+      const result = await Wallet.getWallet().provider.send(
+        request.params.request.method,
+        request.params.request.params
       );
 
-      console.log(result);
-      connector.approveRequest({
-        id: payload.id,
-        result: result,
+      const response = { id: request.id, result: result, jsonrpc: "2.0" };
+
+      await web3wallet.respondSessionRequest({
+        topic: request.topic,
+        response,
       });
     });
 
-    connector.on("disconnect", (error, payload) => {
-      console.log(payload);
-
-      if (error) {
-        throw error;
-      }
-
-      // Delete connector
-    });
-
-    this.wcProvider = new WCProvider(connector);
-    return this.wcProvider;
+    this.connector = web3wallet;
   }
 
-  constructor(connector: WalletConnect) {
-    this.connector = connector;
+  async connect(wcString: string) {
+    if (this.connector == null) {
+      throw new Error("Please initialize the provider first");
+    }
+
+    await this.connector!.core.pairing.pair({ uri: wcString! });
+  }
+
+  async disconnect() {
+    if (this.connector == null) {
+      throw new Error("Connector is not set");
+    }
+
+    let sessions = this.connector!.core.pairing.getPairings();
+    if (sessions.length === 0) {
+      return;
+    }
+
+    console.log("sessions", sessions);
+    await this.connector!.disconnectSession({
+      topic: sessions[sessions.length - 1].topic,
+      reason: getSdkError("USER_DISCONNECTED"),
+    });
   }
 }
