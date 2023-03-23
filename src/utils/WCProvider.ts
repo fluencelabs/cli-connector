@@ -58,6 +58,17 @@ export class WCProvider {
     });
 
     web3wallet.on("session_request", async (request) => {
+      console.log("session_request", request);
+      if (request.params.request.method === "eth_sendTransaction") {
+        const req = request.params.request.params[0];
+        request.params.request.params[0] = {
+          data: req.data,
+          from: req.from,
+          to: req.to,
+        };
+
+        console.log(request.params.request.params);
+      }
       const result = await Wallet.getWallet().provider.send(
         request.params.request.method,
         request.params.request.params
