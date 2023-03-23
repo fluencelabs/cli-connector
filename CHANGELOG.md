@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/fluencelabs/cli-connector/compare/cli-connector-v0.1.3...cli-connector-v0.1.4) (2023-03-23)
+
+
+### Bug Fixes
+
+* fix gas ([7468e06](https://github.com/fluencelabs/cli-connector/commit/7468e0650cad28651c4dd715affae4aa285d21ac))
+* fix gas limit ([#10](https://github.com/fluencelabs/cli-connector/issues/10)) ([7468e06](https://github.com/fluencelabs/cli-connector/commit/7468e0650cad28651c4dd715affae4aa285d21ac))
+
 ## [0.1.3](https://github.com/fluencelabs/cli-connector/compare/cli-connector-v0.1.2...cli-connector-v0.1.3) (2023-02-28)
 
 
