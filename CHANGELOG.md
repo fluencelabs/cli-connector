@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/fluencelabs/cli-connector/compare/cli-connector-v0.1.4...cli-connector-v0.1.5) (2024-05-27)
+
+
+### Features
+
+* Update WalletConnectSettings.tsx ([#12](https://github.com/fluencelabs/cli-connector/issues/12)) ([d8a03a6](https://github.com/fluencelabs/cli-connector/commit/d8a03a60c8487031653b5051b2d42700d8d8fa9b))
+
 ## [0.1.4](https://github.com/fluencelabs/cli-connector/compare/cli-connector-v0.1.3...cli-connector-v0.1.4) (2023-03-23)
 
 
