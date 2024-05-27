@@ -87,7 +87,7 @@ export const WalletConnectSettings = () => {
         </>
       ) : (
         <>
-          <Text>Wait transaction in your wallet</Text>
+          <Text>Wait for the transaction to appear in your wallet</Text>
           <Button colorScheme="blue" onClick={() => disconnect()}>
             Disconnect
           </Button>
